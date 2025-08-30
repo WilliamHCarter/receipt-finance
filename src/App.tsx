@@ -417,3 +417,321 @@ export default function App() {
         )}
 
         {view === 'overview' && (
+          <>
+            {/* Enhanced Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCard
+                title="Total Expenses"
+                value={`$${totalAmount.toLocaleString()}`}
+                icon={DollarSign}
+                trend="+12% vs last month"
+                color="blue"
+              />
+              <StatCard
+                title="Total Receipts"
+                value={totalReceipts}
+                icon={Receipt}
+                trend="+5 this week"
+                color="green"
+              />
+              <StatCard
+                title="Budget Status"
+                value={`${Math.round((currentMonthSpent / currentMonthBudget) * 100)}%`}
+                icon={TrendingUp}
+                trend={currentMonthSpent > currentMonthBudget ? 'Over budget' : 'Under budget'}
+                color={currentMonthSpent > currentMonthBudget ? 'red' : 'green'}
+              />
+              <StatCard
+                title="Avg per Receipt"
+                value={`$${(totalAmount / totalReceipts).toFixed(2)}`}
+                icon={BarChart3}
+                color="purple"
+              />
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Expenses vs Budget</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={expenseData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value, name) => [`$${value}`, name === 'amount' ? 'Spent' : 'Budget']} />
+                    <Area
+                      type="monotone"
+                      dataKey="budget"
+                      stroke="#e5e7eb"
+                      fill="#f3f4f6"
+                      fillOpacity={0.5}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
+                      fillOpacity={0.3}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPieChart>
+                    <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                    <RechartsPieChart data={categoryData} cx="50%" cy="50%" outerRadius={80} dataKey="value">
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </RechartsPieChart>
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  {categoryData.map((category) => (
+                    <div key={category.name} className="flex items-center space-x-2">
+                      <div className="w-3 h-3 rounded-full" style={{backgroundColor: category.color}}></div>
+                      <span className="text-sm text-gray-600">{category.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {view === 'analytics' && (
+          <div className="space-y-8">
+            <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+            
+            {/* Spending Trends */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending Trends</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={expenseData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                  <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Categories</h3>
+                <div className="space-y-4">
+                  {categoryData.sort((a, b) => b.value - a.value).map((category, index) => (
+                    <div key={category.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-semibold" 
+                             style={{backgroundColor: category.color}}>
+                          {index + 1}
+                        </div>
+                        <span className="font-medium">{category.name}</span>
+                      </div>
+                      <span className="font-semibold text-gray-900">${category.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Insights</h3>
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      💡 Your lowest spending month was February with $380
+                    </p>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      📊 Average monthly spending: ${Math.round(totalAmount / expenseData.length)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="text-sm text-purple-800">
+                      🎯 You're saving 15% compared to last year
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'receipts' && (
+          <div className="bg-white rounded-xl shadow-sm border">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">All Receipts</h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">{filteredReceipts.length} receipts</span>
+                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    Export
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search receipts, stores, categories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+                <div className="relative">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2 transition-colors">
+                  <Filter className="h-4 w-4" />
+                  <span>More Filters</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+              {filteredReceipts.length > 0 ? (
+                filteredReceipts.map((receipt) => (
+                  <ReceiptRow 
+                    key={receipt.id} 
+                    receipt={receipt} 
+                    onEdit={handleEditReceipt}
+                    onDelete={handleDeleteReceipt}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No receipts found matching your criteria</p>
+                  <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Add your first receipt
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Receipts for Overview */}
+        {view === 'overview' && (
+          <div className="bg-white rounded-xl shadow-sm border">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Receipts</h3>
+                <button 
+                  onClick={() => setView('receipts')}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  View All
+                </button>
+              </div>
+              
+              <div className="flex space-x-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search receipts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Filter</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {filteredReceipts.slice(0, 6).map((receipt) => (
+                <ReceiptRow 
+                  key={receipt.id} 
+                  receipt={receipt} 
+                  onEdit={handleEditReceipt}
+                  onDelete={handleDeleteReceipt}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Add/Edit Receipt Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingReceipt(null);
+        }}
+        title={editingReceipt ? 'Edit Receipt' : 'Add New Receipt'}
+      >
+        <AddReceiptForm
+          onSubmit={handleAddReceipt}
+          onCancel={() => {
+            setShowAddModal(false);
+            setEditingReceipt(null);
+          }}
+          editingReceipt={editingReceipt}
+        />
+      </Modal>
+
+      {/* Quick Actions Floating Button */}
+      <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
+        <button className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200">
+          <Camera className="h-6 w-6" />
+        </button>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2">
+        <div className="flex justify-around">
+          {[
+            { id: 'overview', label: 'Overview', icon: TrendingUp },
+            { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+            { id: 'receipts', label: 'Receipts', icon: Receipt }
+          ].map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setView(id)}
+              className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-colors ${
+                view === id ? 'text-blue-700' : 'text-gray-600'
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-xs">{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
